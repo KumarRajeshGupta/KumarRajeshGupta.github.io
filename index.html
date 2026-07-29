@@ -3,481 +3,572 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Alex Carter — Event Check-In & Badge Printing Systems</title>
+<title>Rajesh Gupta — Senior iOS Developer</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-<link href="https://fonts.googleapis.com/css2?family=Big+Shoulders+Display:wght@600;700;800&family=IBM+Plex+Sans:wght@400;500;600;700&family=IBM+Plex+Mono:wght@400;500;600&display=swap" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;500;600;700&family=Inter:wght@400;500;600&display=swap" rel="stylesheet">
 <style>
   :root{
-    --ink:#12161A;
-    --ink-soft:#1B2027;
-    --paper:#F7F4EC;
-    --paper-dim:#E9E5D8;
-    --text-light:#E8E6DF;
-    --text-dim:#9AA0A6;
-    --text-dark:#181B1E;
-    --amber:#E8A23D;
-    --green:#3FA772;
-    --line:#333A42;
-    --line-light:#D8D2C0;
+    --bg:#FFFFFF;
+    --bg-soft:#F6F5F1;
+    --ink:#17171A;
+    --ink-soft:#63625E;
+    --line:#E6E3DA;
+    --card:#FFFFFF;
+    --accent:#8A3324;
+    --accent-soft:#B3543F;
+    --chip:#F0EEE7;
+    --dark:#16181D;
+    --dark-soft:#2A2D34;
+    --display:'Poppins', sans-serif;
+    --body:'Inter', sans-serif;
   }
-  *{box-sizing:border-box;margin:0;padding:0;}
-  html{scroll-behavior:smooth;}
+  *{ box-sizing:border-box; }
+  html{ scroll-behavior:smooth; }
   body{
-    background:var(--ink);
-    color:var(--text-light);
-    font-family:'IBM Plex Sans',sans-serif;
-    line-height:1.55;
-    overflow-x:hidden;
+    margin:0;
+    background:var(--bg);
+    color:var(--ink);
+    font-family:var(--body);
+    -webkit-font-smoothing:antialiased;
+    padding-bottom:52px;
   }
-  ::selection{background:var(--amber);color:var(--ink);}
-  a{color:inherit;}
-  .wrap{max-width:1100px;margin:0 auto;padding:0 32px;}
-  .eyebrow{
-    font-family:'IBM Plex Mono',monospace;
-    font-size:12px;
-    letter-spacing:.18em;
-    text-transform:uppercase;
-    color:var(--amber);
-    display:flex;align-items:center;gap:10px;
-    margin-bottom:18px;
-  }
-  .eyebrow::before{content:"";width:22px;height:1px;background:var(--amber);}
-  h1,h2,h3{font-family:'Big Shoulders Display',sans-serif;font-weight:800;text-transform:uppercase;letter-spacing:.01em;}
-  :focus-visible{outline:2px solid var(--amber);outline-offset:3px;}
-  @media (prefers-reduced-motion: reduce){ *{animation-duration:.001ms !important; transition-duration:.001ms !important;} }
+  a{ color:inherit; }
+  ::selection{ background:var(--accent); color:#fff; }
+  .wrap{ max-width:1080px; margin:0 auto; padding:0 32px; }
+  @media (max-width:600px){ .wrap{ padding:0 20px; } }
 
-  /* ---------- NAV ---------- */
-  nav{
-    position:fixed;top:0;left:0;right:0;z-index:50;
-    background:rgba(18,22,26,.85);backdrop-filter:blur(8px);
-    border-bottom:1px solid var(--line);
+  .menu-btn{
+    position:fixed; top:28px; left:28px; z-index:60;
+    width:56px; height:56px; border-radius:50%;
+    background:var(--dark); border:none; cursor:pointer;
+    display:flex; align-items:center; justify-content:center;
+    gap:4px; flex-direction:column;
+    box-shadow:0 8px 20px -8px rgba(0,0,0,0.4);
   }
-  nav .wrap{display:flex;align-items:center;justify-content:space-between;height:64px;}
-  .brand{font-family:'IBM Plex Mono',monospace;font-size:14px;letter-spacing:.08em;font-weight:600;}
-  .brand span{color:var(--amber);}
-  .navlinks{display:flex;gap:28px;font-size:13px;font-family:'IBM Plex Mono',monospace;letter-spacing:.04em;}
-  .navlinks a{text-decoration:none;color:var(--text-dim);transition:color .2s;}
-  .navlinks a:hover{color:var(--paper);}
-  @media (max-width:700px){.navlinks{display:none;}}
+  .menu-btn span{ width:20px; height:2px; background:#fff; display:block; transition:transform .25s ease, opacity .25s ease; }
+  .menu-btn.open span:nth-child(1){ transform:translateY(6px) rotate(45deg); }
+  .menu-btn.open span:nth-child(2){ opacity:0; }
+  .menu-btn.open span:nth-child(3){ transform:translateY(-6px) rotate(-45deg); }
 
-  /* ---------- HERO ---------- */
-  header.hero{
-    padding:150px 0 110px;
-    position:relative;
-    border-bottom:1px solid var(--line);
+  .menu-overlay{
+    position:fixed; inset:0; background:var(--dark); z-index:55;
+    display:flex; align-items:center; justify-content:center;
+    opacity:0; pointer-events:none; transition:opacity .35s ease;
   }
-  .hero-grid{display:grid;grid-template-columns:1.15fr .85fr;gap:64px;align-items:center;}
-  @media (max-width:880px){.hero-grid{grid-template-columns:1fr;}}
-  .hero h1{font-size:clamp(38px,5.2vw,64px);line-height:1;margin-bottom:22px;color:var(--paper);}
-  .hero h1 .hl{color:var(--amber);}
-  .hero p.lead{font-size:17px;color:var(--text-dim);max-width:46ch;margin-bottom:34px;}
-  .cta-row{display:flex;gap:14px;flex-wrap:wrap;}
+  .menu-overlay.open{ opacity:0.98; pointer-events:auto; }
+  .menu-overlay ul{ list-style:none; margin:0; padding:0; text-align:center; }
+  .menu-overlay li{ margin:18px 0; }
+  .menu-overlay a{ font-family:var(--display); font-size:32px; font-weight:500; color:#fff; text-decoration:none; letter-spacing:-0.01em; }
+  .menu-overlay a:hover{ color:var(--accent-soft); }
+
+  .hero{ position:relative; padding:120px 0 0; overflow:hidden; text-align:center; }
+  .dotgrid{
+    position:absolute; top:90px; left:32px; width:150px; height:150px;
+    background-image:radial-gradient(var(--line) 1.6px, transparent 1.6px);
+    background-size:16px 16px; z-index:0;
+  }
+  @media (max-width:700px){ .dotgrid{ display:none; } }
+  .hero-inner{ position:relative; z-index:1; }
+  .avatar{
+    width:150px; height:150px; margin:0 auto 26px; border-radius:50%;
+    background:linear-gradient(135deg, var(--dark), var(--accent));
+    display:flex; align-items:center; justify-content:center;
+    box-shadow:0 18px 40px -18px rgba(20,20,20,0.45), 0 0 0 8px #fff, 0 0 0 9px var(--line);
+  }
+  .avatar span{ font-family:var(--display); font-weight:600; font-size:44px; color:#fff; letter-spacing:0.02em; }
+  .hero h1{ font-family:var(--display); font-weight:600; font-size:clamp(1.9rem, 4vw, 2.6rem); margin:0 0 10px; letter-spacing:-0.01em; }
+  .hero .role{ font-size:15.5px; color:var(--ink-soft); margin:0 0 70px; }
+  .hero .swash{ font-family:var(--display); font-weight:400; font-size:34px; color:var(--ink); margin:0 0 6px; }
+  .chev{
+    width:18px; height:18px; margin:0 auto 40px;
+    border-right:2px solid var(--ink-soft); border-bottom:2px solid var(--ink-soft);
+    transform:rotate(45deg); animation:bob 1.8s ease-in-out infinite;
+  }
+  @keyframes bob{ 0%,100%{ transform:rotate(45deg) translate(0,0); } 50%{ transform:rotate(45deg) translate(4px,4px); } }
+  .curve{ display:block; width:100%; height:auto; margin-top:-2px; }
+
+  .showcase{ background:var(--dark); color:#fff; padding:80px 0 96px; }
+  .showcase-grid{ display:grid; grid-template-columns:0.85fr 1.15fr; gap:56px; align-items:center; }
+  @media (max-width:860px){ .showcase-grid{ grid-template-columns:1fr; } }
+  .showcase-copy .eyebrow{ font-family:var(--body); font-size:11.5px; letter-spacing:0.14em; text-transform:uppercase; color:var(--accent-soft); margin:0 0 14px; }
+  .showcase-copy h2{ font-family:var(--display); font-weight:600; font-size:clamp(1.7rem, 3.4vw, 2.3rem); margin:0 0 16px; min-height:2.4em; }
+  .showcase-copy p{ color:#C7C8CE; line-height:1.7; font-size:15px; margin:0 0 28px; min-height:6.8em; }
+  .showcase-btns{ display:flex; gap:12px; flex-wrap:wrap; margin-bottom:28px;}
   .btn{
-    font-family:'IBM Plex Mono',monospace;font-size:13px;letter-spacing:.05em;
-    padding:14px 22px;border-radius:2px;text-decoration:none;
-    display:inline-flex;align-items:center;gap:8px;transition:transform .18s, background .18s;
+    font-family:var(--body); font-weight:500; font-size:13.5px; text-decoration:none;
+    padding:13px 24px; border-radius:30px; display:inline-flex; align-items:center; gap:8px;
+    transition:transform .18s ease, background .18s ease, opacity .18s ease; border:1px solid transparent; cursor:pointer;
   }
-  .btn-primary{background:var(--amber);color:var(--ink);font-weight:600;}
-  .btn-primary:hover{transform:translateY(-2px);background:#f0ae4c;}
-  .btn-ghost{border:1px solid var(--line);color:var(--paper);}
-  .btn-ghost:hover{border-color:var(--amber);color:var(--amber);}
+  .btn-solid{ background:var(--accent); color:#fff; }
+  .btn-solid:hover{ background:var(--accent-soft); transform:translateY(-2px); }
+  .btn-outline{ border-color:rgba(255,255,255,0.35); color:#fff; background:transparent; }
+  .btn-outline:hover{ background:rgba(255,255,255,0.08); transform:translateY(-2px); }
 
-  /* ---------- PRINTER / BADGE SIGNATURE ---------- */
-  .printer-stage{position:relative;height:420px;display:flex;align-items:flex-end;justify-content:center;}
-  .printer-body{
-    position:absolute;bottom:40px;width:280px;height:110px;
-    background:linear-gradient(180deg,#242A31,#1A1F24);
-    border-radius:8px;border:1px solid var(--line);
-    box-shadow:0 20px 50px rgba(0,0,0,.5);
-    z-index:2;
+  .dots{ display:flex; gap:9px; }
+  .dots button{ width:9px; height:9px; border-radius:50%; background:rgba(255,255,255,0.25); border:none; cursor:pointer; padding:0; transition:background .2s ease, transform .2s ease; }
+  .dots button.active{ background:var(--accent-soft); transform:scale(1.3); }
+
+  .phone-stage{ display:flex; justify-content:center; }
+  .phone{
+    width:250px; height:510px; background:#0C0D10; border-radius:38px; padding:12px;
+    box-shadow:0 40px 70px -30px rgba(0,0,0,0.6); position:relative;
   }
-  .printer-body::before{
-    content:"";position:absolute;top:-1px;left:20px;right:20px;height:14px;
-    background:var(--ink);border-radius:0 0 6px 6px;
-    border:1px solid var(--line);border-top:none;
+  .phone::before{
+    content:''; position:absolute; top:12px; left:50%; margin-left:-38px;
+    width:76px; height:20px; background:#0C0D10; border-radius:0 0 14px 14px; z-index:3;
   }
-  .printer-slot{
-    position:absolute;top:-2px;left:34px;right:34px;height:6px;
-    background:#0B0D0F;border-radius:3px;
+  .screen{ width:100%; height:100%; background:var(--bg-soft); border-radius:28px; overflow:hidden; position:relative; display:flex; flex-direction:column; }
+  .screen-top{ padding:34px 18px 10px; font-family:var(--body); font-weight:600; font-size:13px; color:var(--ink); }
+  .screen-body{ flex:1; padding:6px 18px 18px; display:flex; flex-direction:column; gap:10px; }
+
+  .row-chip{ display:flex; align-items:center; gap:10px; background:#fff; border:1px solid var(--line); border-radius:12px; padding:10px 12px; }
+  .row-chip .ic{ width:22px; height:22px; border-radius:50%; background:var(--accent); flex:none; }
+  .row-chip .ic.check{ background:#2E8B57; }
+  .row-chip .bar{ height:8px; border-radius:4px; background:var(--line); flex:1; }
+  .row-chip .bar.short{ width:55%; }
+
+  .badge-mini{ background:#fff; border:1px solid var(--line); border-radius:14px; padding:14px; text-align:center; }
+  .badge-mini .name{ font-family:var(--display); font-weight:600; font-size:16px; }
+  .badge-mini .role{ font-family:var(--body); font-size:9.5px; letter-spacing:.08em; text-transform:uppercase; color:var(--accent); margin-top:2px;}
+  .badge-mini .qr-mini{ width:36px; height:36px; margin:10px auto 0; background:repeating-linear-gradient(90deg, var(--ink) 0 3px, transparent 3px 6px), repeating-linear-gradient(0deg, var(--ink) 0 3px, transparent 3px 6px); background-blend-mode:multiply; opacity:.85;}
+
+  .print-lines{ display:flex; flex-direction:column; gap:5px; margin-top:10px; }
+  .print-lines div{ height:5px; background:var(--line); border-radius:3px; }
+  .print-lines div:nth-child(1){ width:90%; }
+  .print-lines div:nth-child(2){ width:70%; }
+  .print-lines div:nth-child(3){ width:80%; background:var(--accent); opacity:.5;}
+
+  .sync-orbit{
+    width:90px; height:90px; margin:20px auto; border-radius:50%;
+    border:3px dashed var(--accent); display:flex; align-items:center; justify-content:center;
+    animation:spin 6s linear infinite;
   }
-  .led{position:absolute;bottom:14px;left:20px;width:8px;height:8px;border-radius:50%;background:var(--green);
-    box-shadow:0 0 8px var(--green);animation:blink 2.2s infinite;}
-  @keyframes blink{0%,100%{opacity:1;}50%{opacity:.35;}}
-  .printer-label{position:absolute;bottom:14px;right:20px;font-family:'IBM Plex Mono',monospace;font-size:9px;letter-spacing:.1em;color:var(--text-dim);}
+  .sync-orbit .core{ width:34px; height:34px; border-radius:50%; background:var(--dark); }
+  @keyframes spin{ to{ transform:rotate(360deg); } }
+  .status-dot{ display:flex; align-items:center; gap:6px; font-size:10px; font-family:var(--body); color:var(--ink-soft); justify-content:center; margin-top:8px;}
+  .status-dot i{ width:7px; height:7px; border-radius:50%; background:#2E8B57; display:inline-block;}
 
-  .badge-card{
-    position:absolute;bottom:70px;width:220px;height:300px;
-    background:var(--paper);color:var(--text-dark);border-radius:6px;
-    box-shadow:0 30px 60px rgba(0,0,0,.45);
-    padding:20px;z-index:3;
-    animation:printOut 4.5s cubic-bezier(.2,.8,.2,1) infinite;
-    transform-origin:top center;
+  section{ padding:80px 0; }
+  .section-head{ text-align:center; max-width:56ch; margin:0 auto 48px; }
+  .section-head .eyebrow{ font-size:11.5px; letter-spacing:0.14em; text-transform:uppercase; color:var(--accent); margin:0 0 10px; font-weight:600; }
+  .section-head h2{ font-family:var(--display); font-weight:600; font-size:clamp(1.7rem, 3.2vw, 2.2rem); margin:0 0 12px; letter-spacing:-0.01em; }
+  .section-head p{ color:var(--ink-soft); line-height:1.7; font-size:15px; margin:0;}
+
+  .about{ background:var(--bg-soft); }
+  .stat-row{ display:flex; justify-content:center; gap:0; flex-wrap:wrap; margin-top:8px;}
+  .stat{ text-align:center; padding:0 30px; border-left:1px solid var(--line); }
+  .stat:first-child{ border-left:none; }
+  .stat b{ font-family:var(--display); font-size:28px; font-weight:600; display:block; }
+  .stat span{ font-size:11px; color:var(--ink-soft); letter-spacing:.04em; text-transform:uppercase; }
+  @media (max-width:640px){ .stat{ border-left:none; padding:10px 20px;} }
+
+  .reveal{ opacity:0; transform:translateY(16px); transition:opacity .55s ease, transform .55s ease; }
+  .reveal.in{ opacity:1; transform:none; }
+
+  .product-card{
+    display:grid; grid-template-columns:220px 1fr; gap:34px;
+    background:var(--card); border:1px solid var(--line); border-radius:22px;
+    padding:26px; margin-bottom:22px; align-items:center;
   }
-  @keyframes printOut{
-    0%{transform:translateY(-4px) rotate(0deg);}
-    8%{transform:translateY(-4px) rotate(0deg);}
-    38%{transform:translateY(90px) rotate(-2deg);}
-    55%{transform:translateY(90px) rotate(-2deg);}
-    100%{transform:translateY(90px) rotate(-2deg);}
+  @media (max-width:700px){ .product-card{ grid-template-columns:1fr; } }
+  .mini-phone{ width:100%; aspect-ratio:9/16; background:#0C0D10; border-radius:20px; padding:8px; }
+  .mini-screen{ width:100%; height:100%; background:var(--bg-soft); border-radius:14px; display:flex; flex-direction:column; gap:6px; padding:14px 10px; }
+  .product-copy h3{ font-family:var(--display); font-weight:600; font-size:20px; margin:0 0 4px; }
+  .product-copy .cat{ font-size:10.5px; letter-spacing:.1em; text-transform:uppercase; color:var(--accent); font-weight:600; margin:0 0 10px; }
+  .product-copy p{ font-size:14px; line-height:1.65; color:var(--ink-soft); margin:0 0 14px; }
+  .chips{ display:flex; flex-wrap:wrap; gap:8px; }
+  .chip{ font-size:11px; letter-spacing:.03em; background:var(--chip); color:var(--ink-soft); padding:5px 11px; border-radius:20px; text-transform:uppercase; }
+
+  .skill-groups{ display:grid; grid-template-columns:repeat(2,1fr); gap:28px 40px; }
+  @media (max-width:700px){ .skill-groups{ grid-template-columns:1fr; } }
+  .skill-group h4{ font-family:var(--display); font-weight:600; font-size:14px; margin:0 0 12px; text-transform:uppercase; letter-spacing:.06em; color:var(--ink); }
+  .skill-group .chip{ background:#fff; border:1px solid var(--line); }
+
+  .exp{ background:var(--bg-soft); }
+  .exp-card{ background:#fff; border:1px solid var(--line); border-radius:22px; padding:34px; max-width:760px; margin:0 auto; }
+  .exp-card .head{ display:flex; justify-content:space-between; align-items:baseline; flex-wrap:wrap; gap:8px; margin-bottom:18px;}
+  .exp-card h3{ font-family:var(--display); font-weight:600; font-size:20px; margin:0; }
+  .exp-card .badge{ font-size:11px; color:#2E8B57; display:flex; align-items:center; gap:6px; }
+  .exp-card .badge i{ width:7px; height:7px; border-radius:50%; background:#2E8B57; display:inline-block; }
+  .exp-card ul{ margin:0; padding:0; list-style:none; display:grid; gap:11px;}
+  .exp-card li{ font-size:14px; line-height:1.6; color:var(--ink-soft); padding-left:18px; position:relative;}
+  .exp-card li::before{ content:'—'; position:absolute; left:0; color:var(--accent); }
+
+  .contact-card{ max-width:640px; margin:0 auto; text-align:center; background:var(--dark); color:#fff; border-radius:26px; padding:56px 40px; }
+  .contact-card h2{ font-family:var(--display); font-weight:600; font-size:1.8rem; margin:0 0 14px;}
+  .contact-card p{ color:#C7C8CE; font-size:15px; line-height:1.7; margin:0 0 30px; }
+  .contact-links{ display:flex; flex-wrap:wrap; justify-content:center; gap:10px; margin-bottom:26px;}
+  .contact-links a{ font-size:13px; text-decoration:none; color:#fff; border:1px solid rgba(255,255,255,0.25); padding:9px 16px; border-radius:20px; transition:background .2s ease; }
+  .contact-links a:hover{ background:rgba(255,255,255,0.1); }
+
+  footer{
+    position:fixed; left:0; right:0; bottom:0; background:rgba(255,255,255,0.94);
+    backdrop-filter:blur(6px); border-top:1px solid var(--line); z-index:40; padding:16px 0;
   }
-  .badge-strip{height:8px;border-radius:2px;background:var(--green);margin-bottom:16px;width:60%;}
-  .badge-role{font-family:'IBM Plex Mono',monospace;font-size:10px;letter-spacing:.14em;color:var(--green);text-transform:uppercase;margin-bottom:8px;}
-  .badge-name{font-family:'Big Shoulders Display',sans-serif;font-weight:800;font-size:24px;line-height:1;color:var(--text-dark);margin-bottom:4px;}
-  .badge-org{font-size:12px;color:#555;margin-bottom:20px;}
-  .badge-qr{
-    width:64px;height:64px;margin:0 auto 10px;
-    background-image:
-      linear-gradient(90deg, #181B1E 25%, transparent 25%),
-      linear-gradient(90deg, transparent 75%, #181B1E 75%),
-      linear-gradient(0deg, #181B1E 25%, transparent 25%),
-      linear-gradient(0deg, transparent 75%, #181B1E 75%);
-    background-size:8px 8px;
-    border:6px solid var(--paper);
-    outline:1px solid #ddd7c4;
-  }
-  .badge-id{font-family:'IBM Plex Mono',monospace;font-size:10px;text-align:center;color:#777;letter-spacing:.06em;}
+  footer .wrap{ display:flex; justify-content:space-between; }
+  footer a, footer span{ font-size:11px; letter-spacing:.1em; text-transform:uppercase; color:var(--ink-soft); text-decoration:none; }
+  footer a:hover{ color:var(--accent); }
 
-  /* ---------- SECTION GENERIC ---------- */
-  section{padding:96px 0;border-bottom:1px solid var(--line);}
-  section:last-of-type{border-bottom:none;}
-  .section-head{max-width:640px;margin-bottom:56px;}
-  .section-head h2{font-size:clamp(28px,3.4vw,42px);color:var(--paper);}
-  .section-head p{color:var(--text-dim);margin-top:14px;font-size:15px;max-width:56ch;}
-
-  /* problem */
-  .problem-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:1px;background:var(--line);border:1px solid var(--line);}
-  .problem-card{background:var(--ink);padding:32px 26px;}
-  .problem-card .num{font-family:'IBM Plex Mono',monospace;color:var(--amber);font-size:12px;margin-bottom:14px;display:block;}
-  .problem-card h3{font-size:20px;color:var(--paper);margin-bottom:10px;text-transform:none;font-weight:700;}
-  .problem-card p{font-size:14px;color:var(--text-dim);}
-  @media (max-width:760px){.problem-grid{grid-template-columns:1fr;}}
-
-  /* solution flow */
-  .flow{display:flex;align-items:stretch;gap:0;flex-wrap:wrap;}
-  .flow-step{flex:1;min-width:150px;padding:24px 20px;border:1px solid var(--line);position:relative;background:var(--ink-soft);}
-  .flow-step + .flow-step{border-left:none;}
-  @media (max-width:760px){.flow-step{border-left:1px solid var(--line) !important;border-top:none;}}
-  .flow-step h4{font-family:'IBM Plex Mono',monospace;font-size:12px;letter-spacing:.06em;color:var(--green);margin-bottom:10px;text-transform:uppercase;}
-  .flow-step p{font-size:13.5px;color:var(--text-dim);}
-  .flow-arrow{display:flex;align-items:center;padding:0 6px;color:var(--text-dim);font-family:'IBM Plex Mono',monospace;}
-  @media (max-width:760px){.flow-arrow{display:none;}}
-
-  /* badge feature deep dive - light panel */
-  .feature-panel{background:var(--paper);color:var(--text-dark);border-radius:4px;padding:64px 0;}
-  .feature-panel .wrap{padding-left:32px;padding-right:32px;}
-  .feature-inner{display:grid;grid-template-columns:.9fr 1.1fr;gap:56px;align-items:start;}
-  @media (max-width:880px){.feature-inner{grid-template-columns:1fr;}}
-  .feature-panel .eyebrow{color:#B5762A;}
-  .feature-panel .eyebrow::before{background:#B5762A;}
-  .feature-panel h2{color:var(--text-dark);font-size:clamp(26px,3vw,38px);margin-bottom:16px;}
-  .feature-panel .lead{color:#4a4a4a;font-size:15px;margin-bottom:30px;max-width:52ch;}
-  .spec-list{list-style:none;}
-  .spec-list li{
-    display:flex;gap:14px;padding:16px 0;border-top:1px solid var(--line-light);
-    font-size:14px;color:#333;
-  }
-  .spec-list li:last-child{border-bottom:1px solid var(--line-light);}
-  .spec-list .tag{
-    font-family:'IBM Plex Mono',monospace;font-size:10px;letter-spacing:.08em;
-    background:var(--text-dark);color:var(--paper);padding:3px 8px;border-radius:2px;
-    height:fit-content;white-space:nowrap;text-transform:uppercase;
-  }
-
-  /* badge tiers showcase */
-  .tier-row{display:flex;gap:18px;flex-wrap:wrap;margin-top:8px;}
-  .mini-badge{
-    width:150px;background:#fff;border:1px solid var(--line-light);border-radius:5px;
-    padding:14px;box-shadow:0 10px 24px rgba(0,0,0,.08);
-  }
-  .mini-strip{height:6px;border-radius:2px;margin-bottom:10px;}
-  .mini-role{font-family:'IBM Plex Mono',monospace;font-size:8.5px;letter-spacing:.1em;text-transform:uppercase;margin-bottom:6px;}
-  .mini-name{font-family:'Big Shoulders Display',sans-serif;font-weight:800;font-size:16px;color:var(--text-dark);}
-  .mini-org{font-size:10px;color:#888;margin-bottom:10px;}
-  .mini-qr{width:36px;height:36px;margin:0 auto;
-    background-image:
-      linear-gradient(90deg, #181B1E 25%, transparent 25%),
-      linear-gradient(90deg, transparent 75%, #181B1E 75%),
-      linear-gradient(0deg, #181B1E 25%, transparent 25%),
-      linear-gradient(0deg, transparent 75%, #181B1E 75%);
-    background-size:6px 6px;border:4px solid #fff;outline:1px solid #eee;}
-  .attendee{background:#3FA772;}
-  .speaker{background:#E8A23D;}
-  .staff{background:#5B6B7A;}
-  .vip{background:#B5762A;}
-  .attendee-c{color:#2E8058;}
-  .speaker-c{color:#B5762A;}
-  .staff-c{color:#4B5A68;}
-  .vip-c{color:#8C5A1F;}
-
-  /* metrics */
-  .metrics{display:grid;grid-template-columns:repeat(4,1fr);gap:1px;background:var(--line);border:1px solid var(--line);}
-  .metric{background:var(--ink);padding:34px 24px;}
-  .metric .val{font-family:'Big Shoulders Display',sans-serif;font-weight:800;font-size:44px;color:var(--amber);line-height:1;}
-  .metric .lbl{font-family:'IBM Plex Mono',monospace;font-size:11px;color:var(--text-dim);letter-spacing:.05em;margin-top:10px;text-transform:uppercase;}
-  @media (max-width:760px){.metrics{grid-template-columns:1fr 1fr;}}
-
-  /* stack */
-  .stack-row{display:flex;flex-wrap:wrap;gap:10px;}
-  .pill{
-    font-family:'IBM Plex Mono',monospace;font-size:12.5px;padding:9px 16px;
-    border:1px solid var(--line);border-radius:2px;color:var(--paper);
-    background:var(--ink-soft);
-  }
-
-  /* other projects */
-  .proj-grid{display:grid;grid-template-columns:repeat(2,1fr);gap:1px;background:var(--line);border:1px solid var(--line);}
-  .proj-card{background:var(--ink);padding:30px;}
-  .proj-card h3{font-size:19px;color:var(--paper);font-weight:700;text-transform:none;margin-bottom:8px;}
-  .proj-card p{font-size:13.5px;color:var(--text-dim);}
-  @media (max-width:700px){.proj-grid{grid-template-columns:1fr;}}
-
-  /* footer */
-  footer{padding:70px 0 50px;}
-  .footer-inner{display:flex;justify-content:space-between;align-items:flex-end;flex-wrap:wrap;gap:24px;}
-  footer h2{font-size:clamp(30px,4vw,50px);color:var(--paper);margin-bottom:14px;}
-  .footer-links{display:flex;gap:22px;font-family:'IBM Plex Mono',monospace;font-size:13px;}
-  .footer-links a{text-decoration:none;color:var(--text-dim);border-bottom:1px solid transparent;transition:.2s;}
-  .footer-links a:hover{color:var(--amber);border-color:var(--amber);}
-  .fine{margin-top:50px;font-family:'IBM Plex Mono',monospace;font-size:11px;color:#555;}
-
-  .reveal{opacity:0;transform:translateY(18px);transition:opacity .6s ease, transform .6s ease;}
-  .reveal.in{opacity:1;transform:translateY(0);}
+  :focus-visible{ outline:2px solid var(--accent); outline-offset:2px; }
 </style>
 </head>
 <body>
 
-<nav>
-  <div class="wrap">
-    <div class="brand">ALEX CARTER <span>/ iOS · EVA CHECKIN</span></div>
-    <div class="navlinks">
-      <a href="#problem">Problem</a>
-      <a href="#badge">Badge Printing</a>
-      <a href="#stack">Stack</a>
-      <a href="#contact">Contact</a>
-    </div>
-  </div>
-</nav>
+<button class="menu-btn" id="menuBtn" aria-label="Toggle menu"><span></span><span></span><span></span></button>
+<div class="menu-overlay" id="menuOverlay">
+  <ul>
+    <li><a href="#about" class="menu-link">About</a></li>
+    <li><a href="#products" class="menu-link">Products</a></li>
+    <li><a href="#skills" class="menu-link">Skills</a></li>
+    <li><a href="#experience" class="menu-link">Experience</a></li>
+    <li><a href="#contact" class="menu-link">Contact</a></li>
+  </ul>
+</div>
 
-<header class="hero">
-  <div class="wrap hero-grid">
-    <div>
-      <div class="eyebrow">Portfolio — iOS, Event Check-In</div>
-      <h1>I build iOS apps that print a badge <span class="hl">before the line notices it moved.</span></h1>
-      <p class="lead">iOS developer behind <strong>Eva Checkin</strong> — a mobile event check-in app with an in-app badge designer and Bluetooth badge printing — and <strong>Eva Lead Capture</strong>, its companion app for exhibitors scanning and qualifying leads on the show floor.</p>
-      <div class="cta-row">
-        <a href="#badge" class="btn btn-primary">See the badge printing system →</a>
-        <a href="#contact" class="btn btn-ghost">Get in touch</a>
-      </div>
-    </div>
-    <div class="printer-stage" aria-hidden="true">
-      <div class="badge-card">
-        <div class="badge-strip"></div>
-        <div class="badge-role">Speaker</div>
-        <div class="badge-name">J. Romero</div>
-        <div class="badge-org">Nimbus Cloud Summit</div>
-        <div class="badge-qr"></div>
-        <div class="badge-id">ID 0483 — GATE B</div>
-      </div>
-      <div class="printer-body">
-        <div class="printer-slot"></div>
-        <div class="led"></div>
-        <div class="printer-label">EVA CHECKIN — QUEUE: 1</div>
-      </div>
-    </div>
+<header class="hero" id="top">
+  <div class="dotgrid"></div>
+  <div class="wrap hero-inner">
+    <div class="avatar"><span>RG</span></div>
+    <h1>Rajesh Gupta</h1>
+    <p class="role">Senior iOS Developer · Event Technology Specialist</p>
+    <p class="swash">portfolio</p>
+    <div class="chev"></div>
   </div>
+  <svg class="curve" viewBox="0 0 1440 120" preserveAspectRatio="none">
+    <path d="M0,40 C 480,140 960,-20 1440,60 L1440,120 L0,120 Z" fill="#16181D"></path>
+  </svg>
 </header>
 
-<section id="problem">
-  <div class="wrap">
-    <div class="section-head reveal">
-      <div class="eyebrow">The problem</div>
-      <h2>Event lines are where first impressions go to die</h2>
-      <p>Doors open, three hundred people arrive in twenty minutes, and every extra second at the check-in desk compounds into a queue out the door.</p>
-    </div>
-    <div class="problem-grid reveal">
-      <div class="problem-card">
-        <span class="num">01</span>
-        <h3>Slow lookup</h3>
-        <p>Staff scrolling spreadsheets or laggy search tools while a line backs up behind a single desk.</p>
+<section class="showcase">
+  <div class="wrap showcase-grid">
+    <div class="showcase-copy">
+      <p class="eyebrow">Live demo</p>
+      <h2 id="showTitle">Onsite badge printing</h2>
+      <p id="showDesc">Integrated with Zebra ZD620 / ZD621 printers over Bluetooth and Wi-Fi. Preview, print, and reprint badges in seconds, even double-sided or multi-page.</p>
+      <div class="showcase-btns">
+        <a class="btn btn-solid" href="#contact">Get in touch</a>
+        <a class="btn btn-outline" href="#products">All products</a>
       </div>
-      <div class="problem-card">
-        <span class="num">02</span>
-        <h3>Printer failure mid-rush</h3>
-        <p>A jam or dropped connection at minute one of doors-open with no queue, retry, or fallback path.</p>
-      </div>
-      <div class="problem-card">
-        <span class="num">03</span>
-        <h3>Wrong badge, wrong door</h3>
-        <p>Manual role selection leads to misprints — a walk-in printed as VIP, a speaker printed as general admission.</p>
+      <div class="dots" id="showDots">
+        <button class="active" data-i="0" aria-label="Badge printing"></button>
+        <button data-i="1" aria-label="Offline sync"></button>
+        <button data-i="2" aria-label="Lead capture"></button>
       </div>
     </div>
-  </div>
-</section>
-
-<section id="solution">
-  <div class="wrap">
-    <div class="section-head reveal">
-      <div class="eyebrow">The solution</div>
-      <h2>Check-in and printing, on a single iPhone or iPad</h2>
-      <p>Eva Checkin runs the whole flow natively on iOS — search to printed badge, no laptop or print server required.</p>
-    </div>
-    <div class="flow reveal">
-      <div class="flow-step"><h4>01 — Search</h4><p>Guest is found by name, email, or QR/ticket scan inside Eva Checkin, against a live-synced attendee list.</p></div>
-      <div class="flow-step"><h4>02 — Verify</h4><p>Ticket tier and role are confirmed automatically — attendee, speaker, staff, press, VIP.</p></div>
-      <div class="flow-step"><h4>03 — Print</h4><p>Badge is rendered from the in-app designer and sent over Bluetooth to a paired mobile thermal printer.</p></div>
-      <div class="flow-step"><h4>04 — Sync</h4><p>Check-in status pushes to the backend instantly, visible across every staff device at the event.</p></div>
-    </div>
-  </div>
-</section>
-
-<section id="badge" style="border-bottom:none;padding-bottom:0;">
-  <div class="wrap">
-    <div class="section-head reveal">
-      <div class="eyebrow">Flagship feature — Eva Checkin (iOS)</div>
-      <h2>Badge design and printing, built natively for iOS</h2>
-      <p>This is the piece I'm proudest of — a badge designer and Bluetooth printing pipeline built entirely in Swift, made to hold up through the worst ten minutes of any event, not just the demo-day best case.</p>
-    </div>
-  </div>
-
-  <div class="feature-panel reveal">
-    <div class="wrap">
-      <div class="feature-inner">
-        <div>
-          <div class="eyebrow">How it works</div>
-          <h2>From scan to printed badge in under 2 seconds</h2>
-          <p class="lead">Badges are laid out in an in-app design canvas, then rendered on-device and sent straight to a Bluetooth-paired mobile printer — so role, access level, and last-minute name changes are always accurate at the moment of print.</p>
-
-          <div class="tier-row">
-            <div class="mini-badge">
-              <div class="mini-strip attendee"></div>
-              <div class="mini-role attendee-c">Attendee</div>
-              <div class="mini-name">S. Patel</div>
-              <div class="mini-org">General Admission</div>
-              <div class="mini-qr"></div>
+    <div class="phone-stage">
+      <div class="phone">
+        <div class="screen">
+          <div class="screen-top" id="showScreenTitle">Badge Printing</div>
+          <div class="screen-body" id="showScreenBody">
+            <div class="badge-mini">
+              <div class="name">RAJESH GUPTA</div>
+              <div class="role">Senior iOS Developer</div>
+              <div class="qr-mini"></div>
             </div>
-            <div class="mini-badge">
-              <div class="mini-strip speaker"></div>
-              <div class="mini-role speaker-c">Speaker</div>
-              <div class="mini-name">J. Romero</div>
-              <div class="mini-org">All-Access</div>
-              <div class="mini-qr"></div>
-            </div>
-            <div class="mini-badge">
-              <div class="mini-strip staff"></div>
-              <div class="mini-role staff-c">Staff</div>
-              <div class="mini-name">D. Kim</div>
-              <div class="mini-org">Ops Team</div>
-              <div class="mini-qr"></div>
-            </div>
-            <div class="mini-badge">
-              <div class="mini-strip vip"></div>
-              <div class="mini-role vip-c">VIP</div>
-              <div class="mini-name">R. Novak</div>
-              <div class="mini-org">Backstage</div>
-              <div class="mini-qr"></div>
-            </div>
+            <div class="print-lines"><div></div><div></div><div></div></div>
+            <div class="status-dot"><i></i>ZD621 connected — ready to print</div>
           </div>
         </div>
-
-        <ul class="spec-list">
-          <li><span class="tag">Design canvas</span><span>Built an in-app badge designer where organizers lay out logo, name, QR, and role fields per event — no external design tool needed.</span></li>
-          <li><span class="tag">Bluetooth print</span><span>Badges print directly from the iPhone/iPad over Core Bluetooth to a paired mobile thermal printer — no laptop or print server on site.</span></li>
-          <li><span class="tag">Templates</span><span>Role-based badge templates render dynamically — colour strip, access text, and QR payload are never hand-picked by staff.</span></li>
-          <li><span class="tag">Offline-first</span><span>Attendee data is cached on-device; if the venue Wi-Fi drops, check-ins and print jobs queue locally and sync once back online.</span></li>
-          <li><span class="tag">Reprints</span><span>One-tap reprint and void handling for smudged, jammed, or duplicate badges, with a full audit trail per attendee.</span></li>
-          <li><span class="tag">Performance</span><span>Sub-2-second render-to-print time, tested against Bluetooth thermal printers under expo-floor conditions.</span></li>
-        </ul>
       </div>
     </div>
   </div>
-
-  <div class="wrap" style="padding-top:64px;">
-    <div class="metrics reveal">
-      <div class="metric"><div class="val">&lt;2s</div><div class="lbl">Scan to printed badge</div></div>
-      <div class="metric"><div class="val">[ ]</div><div class="lbl">Badges printed to date</div></div>
-      <div class="metric"><div class="val">[ ]%</div><div class="lbl">Reduction in check-in wait</div></div>
-      <div class="metric"><div class="val">[ ]%</div><div class="lbl">Uptime across live events</div></div>
-    </div>
-    <p style="font-family:'IBM Plex Mono',monospace;font-size:11px;color:#555;margin-top:14px;">
-      ↳ Metrics marked [ ] are placeholders — swap in your real numbers before sending this out.
-    </p>
-  </div>
 </section>
 
-<section id="stack">
+<section class="about" id="about">
   <div class="wrap">
     <div class="section-head reveal">
-      <div class="eyebrow">Under the hood</div>
-      <h2>Tech stack</h2>
-      <p>Native iOS, chosen for reliability on the show floor, not just on paper.</p>
+      <p class="eyebrow">About</p>
+      <h2>Nine years building for the event floor.</h2>
+      <p>I design and build enterprise iOS applications for conferences, exhibitions, and trade shows — registration, check-in, badge printing, session tracking, and the offline sync that keeps it all running when the Wi-Fi doesn't.</p>
     </div>
-    <div class="stack-row reveal">
-      <span class="pill">Swift</span>
-      <span class="pill">UIKit / SwiftUI</span>
-      <span class="pill">Core Bluetooth</span>
-      <span class="pill">Core Graphics / PDFKit</span>
-      <span class="pill">CoreImage (QR/Barcode)</span>
-      <span class="pill">Mobile Thermal Print SDK</span>
-      <span class="pill">CoreData (offline cache)</span>
-      <span class="pill">REST / WebSocket Sync</span>
+    <div class="stat-row reveal">
+      <div class="stat"><b>9+</b><span>Years iOS</span></div>
+      <div class="stat"><b>8</b><span>Products shipped</span></div>
+      <div class="stat"><b>MVVM</b><span>Core architecture</span></div>
+      <div class="stat"><b>Zebra</b><span>Printer integration</span></div>
     </div>
   </div>
 </section>
 
-<section id="other">
+<section id="products">
   <div class="wrap">
     <div class="section-head reveal">
-      <div class="eyebrow">Also shipped</div>
-      <h2>Eva Lead Capture</h2>
-      <p>The companion iOS app to Eva Checkin — built for exhibitors, not organizers.</p>
+      <p class="eyebrow">Featured Products</p>
+      <h2>More apps &amp; projects</h2>
+      <p>Eight applications covering every moment of the attendee journey.</p>
     </div>
-    <div class="proj-grid reveal">
-      <div class="proj-card">
-        <h3>Badge-to-lead scanning</h3>
-        <p>Exhibitors scan the same QR code Eva Checkin prints on each badge to instantly capture a visitor as a lead — no re-typing contact details on the show floor.</p>
-      </div>
-      <div class="proj-card">
-        <h3>On-the-spot notes &amp; qualifying</h3>
-        <p>[ Describe your qualifying-question / notes flow here — e.g. custom fields, hot/warm/cold tagging, follow-up flags. ]</p>
-      </div>
-      <div class="proj-card">
-        <h3>Export &amp; follow-up</h3>
-        <p>[ Describe export — CSV, CRM integration, email summary, etc. — so sales teams can follow up after the event. ]</p>
-      </div>
-      <div class="proj-card">
-        <h3>Shared foundation</h3>
-        <p>Built on the same iOS check-in/attendee infrastructure as Eva Checkin, so a badge printed at registration is scannable at any booth on the floor.</p>
+
+    <div class="product-card reveal">
+      <div class="mini-phone"><div class="mini-screen">
+        <div class="row-chip"><div class="ic check"></div><div class="bar"></div></div>
+        <div class="row-chip"><div class="ic check"></div><div class="bar short"></div></div>
+        <div class="row-chip"><div class="ic"></div><div class="bar"></div></div>
+      </div></div>
+      <div class="product-copy">
+        <p class="cat">Check-in</p>
+        <h3>Event Check-In</h3>
+        <p>Manages attendee arrivals at scale with QR and barcode scanning, manual search, and a live attendance dashboard organizers watch in real time.</p>
+        <div class="chips"><span class="chip">Offline mode</span><span class="chip">Bulk check-in</span><span class="chip">VIP flow</span><span class="chip">Live sync</span></div>
       </div>
     </div>
-    <p style="font-family:'IBM Plex Mono',monospace;font-size:11px;color:#555;margin-top:20px;">
-      ↳ The two cards in brackets are placeholders — fill in the real qualifying and export flow for Eva Lead Capture.
-    </p>
+
+    <div class="product-card reveal">
+      <div class="mini-phone"><div class="mini-screen">
+        <div class="badge-mini" style="transform:scale(0.9)">
+          <div class="name" style="font-size:13px">R. GUPTA</div>
+          <div class="qr-mini" style="width:26px;height:26px;"></div>
+        </div>
+        <div class="print-lines"><div></div><div></div></div>
+      </div></div>
+      <div class="product-copy">
+        <p class="cat">Print</p>
+        <h3>Badge Printing</h3>
+        <p>A complete onsite badge printing solution built for Zebra thermal printers — instant printing, live preview, and full reprint management.</p>
+        <div class="chips"><span class="chip">ZD620 / ZD621</span><span class="chip">Bluetooth & Wi-Fi</span><span class="chip">Double-sided</span></div>
+      </div>
+    </div>
+
+    <div class="product-card reveal">
+      <div class="mini-phone"><div class="mini-screen">
+        <div class="row-chip"><div class="bar"></div></div>
+        <div class="row-chip"><div class="bar short"></div></div>
+        <div class="row-chip"><div class="ic"></div><div class="bar short"></div></div>
+      </div></div>
+      <div class="product-copy">
+        <p class="cat">Design</p>
+        <h3>Badge Designer</h3>
+        <p>A dynamic, no-code design engine — drag-and-drop layouts, rich text, logos, and JSON-based templates so organizers can design their own badges.</p>
+        <div class="chips"><span class="chip">Drag & drop</span><span class="chip">JSON templates</span><span class="chip">QR generation</span></div>
+      </div>
+    </div>
+
+    <div class="product-card reveal">
+      <div class="mini-phone"><div class="mini-screen">
+        <div class="row-chip"><div class="ic"></div><div class="bar"></div></div>
+        <div class="print-lines"><div style="width:60%"></div></div>
+        <div class="row-chip"><div class="ic check"></div><div class="bar short"></div></div>
+      </div></div>
+      <div class="product-copy">
+        <p class="cat">Sessions</p>
+        <h3>Session Management</h3>
+        <p>Tracks capacity and prevents duplicate scans across concurrent conference sessions, with CSV export and full offline support.</p>
+        <div class="chips"><span class="chip">Capacity checks</span><span class="chip">Attendance reports</span></div>
+      </div>
+    </div>
+
+    <div class="product-card reveal">
+      <div class="mini-phone"><div class="mini-screen">
+        <div class="row-chip"><div class="bar"></div></div>
+        <div class="row-chip"><div class="bar"></div></div>
+        <div class="row-chip"><div class="bar short"></div></div>
+      </div></div>
+      <div class="product-copy">
+        <p class="cat">Registration</p>
+        <h3>Registration Management</h3>
+        <p>A flexible system for online, walk-in, guest, and VIP registration, with dynamic forms, approval workflows, and email confirmation.</p>
+        <div class="chips"><span class="chip">Online & onsite</span><span class="chip">Approval flow</span></div>
+      </div>
+    </div>
+
+    <div class="product-card reveal">
+      <div class="mini-phone"><div class="mini-screen">
+        <div class="row-chip"><div class="ic"></div><div class="bar"></div></div>
+        <div class="row-chip"><div class="ic check"></div><div class="bar short"></div></div>
+      </div></div>
+      <div class="product-copy">
+        <p class="cat">Leads</p>
+        <h3>Exhibitor Lead Capture</h3>
+        <p>Lets exhibitors scan badges and business cards, then qualify, rate, and push leads straight into their CRM — offline-capable on the show floor.</p>
+        <div class="chips"><span class="chip">Business card scan</span><span class="chip">CRM sync</span></div>
+      </div>
+    </div>
+
+    <div class="product-card reveal">
+      <div class="mini-phone"><div class="mini-screen">
+        <div class="sync-orbit" style="width:60px;height:60px;margin:8px auto;"><div class="core" style="width:22px;height:22px;"></div></div>
+      </div></div>
+      <div class="product-copy">
+        <p class="cat">Analytics</p>
+        <h3>Event Analytics</h3>
+        <p>A live dashboard of registrations, check-ins, badge prints, and VIP attendance — the numbers organizers watch during the event.</p>
+        <div class="chips"><span class="chip">Live dashboard</span><span class="chip">Walk-in stats</span></div>
+      </div>
+    </div>
+
+    <div class="product-card reveal">
+      <div class="mini-phone"><div class="mini-screen">
+        <div class="sync-orbit" style="width:60px;height:60px;margin:8px auto;"><div class="core" style="width:22px;height:22px;"></div></div>
+        <div class="status-dot"><i></i>Synced</div>
+      </div></div>
+      <div class="product-copy">
+        <p class="cat">Sync</p>
+        <h3>Offline Sync Engine</h3>
+        <p>The layer underneath everything else: incremental sync with conflict resolution, local SQLite storage, and background retries.</p>
+        <div class="chips"><span class="chip">Delta updates</span><span class="chip">Conflict resolution</span></div>
+      </div>
+    </div>
+
   </div>
 </section>
 
-<footer id="contact">
+<section class="exp" id="skills">
   <div class="wrap">
-    <div class="footer-inner">
-      <div>
-        <h2>Let's talk check-in.</h2>
-        <div class="footer-links">
-          <a href="mailto:alex.carter@example.com">alex.carter@example.com</a>
-          <a href="#">LinkedIn</a>
-          <a href="#">GitHub</a>
+    <div class="section-head reveal">
+      <p class="eyebrow">Technical Stack</p>
+      <h2>What's in the toolkit</h2>
+    </div>
+    <div class="skill-groups reveal">
+      <div class="skill-group">
+        <h4>Language & Framework</h4>
+        <div class="chips">
+          <span class="chip">Swift</span><span class="chip">Objective-C</span><span class="chip">UIKit</span><span class="chip">SwiftUI</span><span class="chip">Combine</span><span class="chip">CoreBluetooth</span><span class="chip">CoreData</span><span class="chip">PDFKit</span><span class="chip">Vision</span>
+        </div>
+      </div>
+      <div class="skill-group">
+        <h4>Architecture</h4>
+        <div class="chips">
+          <span class="chip">MVVM</span><span class="chip">Coordinator</span><span class="chip">Repository</span><span class="chip">Dependency Injection</span><span class="chip">Protocol-Oriented</span>
+        </div>
+      </div>
+      <div class="skill-group">
+        <h4>Data & Networking</h4>
+        <div class="chips">
+          <span class="chip">REST APIs</span><span class="chip">URLSession</span><span class="chip">Async/Await</span><span class="chip">SQLite</span><span class="chip">Realm</span>
+        </div>
+      </div>
+      <div class="skill-group">
+        <h4>Hardware & Tools</h4>
+        <div class="chips">
+          <span class="chip">Zebra Printers</span><span class="chip">Bluetooth</span><span class="chip">Wi-Fi Print</span><span class="chip">RFID / NFC</span><span class="chip">Xcode</span><span class="chip">GitLab</span><span class="chip">TestFlight</span><span class="chip">Firebase</span>
         </div>
       </div>
     </div>
-    <p class="fine">Replace the name, contact details, and metrics above with your own before sharing this page. Case study built around Eva Checkin's badge design &amp; printing feature and Eva Lead Capture.</p>
+  </div>
+</section>
+
+<section id="experience">
+  <div class="wrap">
+    <div class="section-head reveal">
+      <p class="eyebrow">Experience</p>
+      <h2>On the ground, at the desk</h2>
+    </div>
+    <div class="exp-card reveal">
+      <div class="head">
+        <h3>Senior iOS Developer</h3>
+        <span class="badge"><i></i>Checked in</span>
+      </div>
+      <ul>
+        <li>Architected and maintained enterprise event management applications from the ground up.</li>
+        <li>Integrated hardware including Zebra printers and QR/barcode scanners into production apps.</li>
+        <li>Optimized application performance for large attendee databases under live-event load.</li>
+        <li>Delivered multiple App Store and enterprise releases on tight event-week deadlines.</li>
+        <li>Collaborated across product, QA, design, and backend engineering to ship on time.</li>
+      </ul>
+    </div>
+  </div>
+</section>
+
+<section id="contact">
+  <div class="wrap">
+    <div class="contact-card reveal">
+      <h2>Let's connect</h2>
+      <p>Open to conversations about event-tech iOS work — full-time, contract, or trading notes on offline sync and thermal printers.</p>
+      <div class="contact-links">
+        <a href="mailto:your.email@example.com">your.email@example.com</a>
+        <a href="https://linkedin.com/in/your-profile" target="_blank" rel="noopener">LinkedIn</a>
+        <a href="https://github.com/yourusername" target="_blank" rel="noopener">GitHub</a>
+        <a href="https://yourwebsite.com" target="_blank" rel="noopener">Website</a>
+      </div>
+      <a class="btn btn-solid" href="mailto:your.email@example.com">Email Rajesh</a>
+    </div>
+  </div>
+</section>
+
+<footer>
+  <div class="wrap">
+    <a href="#contact">About / Contact</a>
+    <span>&copy; 2026 Rajesh Gupta</span>
   </div>
 </footer>
 
 <script>
-  const els = document.querySelectorAll('.reveal');
-  const io = new IntersectionObserver((entries)=>{
-    entries.forEach(e=>{ if(e.isIntersecting){ e.target.classList.add('in'); io.unobserve(e.target); } });
-  },{threshold:0.15});
-  els.forEach(el=>io.observe(el));
+(function(){
+  var menuBtn = document.getElementById('menuBtn');
+  var overlay = document.getElementById('menuOverlay');
+  menuBtn.addEventListener('click', function(){
+    menuBtn.classList.toggle('open');
+    overlay.classList.toggle('open');
+  });
+  document.querySelectorAll('.menu-link').forEach(function(a){
+    a.addEventListener('click', function(){
+      menuBtn.classList.remove('open');
+      overlay.classList.remove('open');
+    });
+  });
+
+  var data = [
+    {
+      title: 'Onsite badge printing',
+      desc: 'Integrated with Zebra ZD620 / ZD621 printers over Bluetooth and Wi-Fi. Preview, print, and reprint badges in seconds, even double-sided or multi-page.',
+      screenTitle: 'Badge Printing',
+      screen: '<div class="badge-mini"><div class="name">RAJESH GUPTA</div><div class="role">Senior iOS Developer</div><div class="qr-mini"></div></div><div class="print-lines"><div></div><div></div><div></div></div><div class="status-dot"><i></i>ZD621 connected — ready to print</div>'
+    },
+    {
+      title: 'Offline-first synchronization',
+      desc: 'Thousands of attendee records stay in sync through incremental deltas and conflict resolution, even in venues with no reliable signal for hours.',
+      screenTitle: 'Offline Sync',
+      screen: '<div class="sync-orbit"><div class="core"></div></div><div class="status-dot"><i></i>142 records queued — syncing</div><div class="print-lines"><div></div><div style="width:60%"></div></div>'
+    },
+    {
+      title: 'Exhibitor lead capture',
+      desc: 'Exhibitors scan a badge, qualify the lead on the spot, and push it straight to CRM — fully functional even without a connection on the show floor.',
+      screenTitle: 'Lead Capture',
+      screen: '<div class="row-chip"><div class="ic check"></div><div class="bar"></div></div><div class="row-chip"><div class="ic"></div><div class="bar short"></div></div><div class="status-dot"><i></i>Lead saved to CRM queue</div>'
+    }
+  ];
+  var titleEl = document.getElementById('showTitle');
+  var descEl = document.getElementById('showDesc');
+  var screenTitleEl = document.getElementById('showScreenTitle');
+  var screenBodyEl = document.getElementById('showScreenBody');
+  var dotButtons = document.querySelectorAll('#showDots button');
+
+  dotButtons.forEach(function(btn){
+    btn.addEventListener('click', function(){
+      var i = parseInt(btn.getAttribute('data-i'), 10);
+      dotButtons.forEach(function(b){ b.classList.remove('active'); });
+      btn.classList.add('active');
+      titleEl.textContent = data[i].title;
+      descEl.textContent = data[i].desc;
+      screenTitleEl.textContent = data[i].screenTitle;
+      screenBodyEl.innerHTML = data[i].screen;
+    });
+  });
+
+  var current = 0;
+  var reducedMotion = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+  if(!reducedMotion){
+    setInterval(function(){
+      current = (current + 1) % data.length;
+      dotButtons[current].click();
+    }, 5200);
+  }
+
+  var reveals = document.querySelectorAll('.reveal');
+  if('IntersectionObserver' in window){
+    var io = new IntersectionObserver(function(entries){
+      entries.forEach(function(entry){
+        if(entry.isIntersecting){
+          entry.target.classList.add('in');
+          io.unobserve(entry.target);
+        }
+      });
+    }, { threshold: 0.12 });
+    reveals.forEach(function(el){ io.observe(el); });
+  } else {
+    reveals.forEach(function(el){ el.classList.add('in'); });
+  }
+})();
 </script>
 
 </body>
