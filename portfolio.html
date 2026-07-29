@@ -1,0 +1,484 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Alex Carter — Event Check-In & Badge Printing Systems</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Big+Shoulders+Display:wght@600;700;800&family=IBM+Plex+Sans:wght@400;500;600;700&family=IBM+Plex+Mono:wght@400;500;600&display=swap" rel="stylesheet">
+<style>
+  :root{
+    --ink:#12161A;
+    --ink-soft:#1B2027;
+    --paper:#F7F4EC;
+    --paper-dim:#E9E5D8;
+    --text-light:#E8E6DF;
+    --text-dim:#9AA0A6;
+    --text-dark:#181B1E;
+    --amber:#E8A23D;
+    --green:#3FA772;
+    --line:#333A42;
+    --line-light:#D8D2C0;
+  }
+  *{box-sizing:border-box;margin:0;padding:0;}
+  html{scroll-behavior:smooth;}
+  body{
+    background:var(--ink);
+    color:var(--text-light);
+    font-family:'IBM Plex Sans',sans-serif;
+    line-height:1.55;
+    overflow-x:hidden;
+  }
+  ::selection{background:var(--amber);color:var(--ink);}
+  a{color:inherit;}
+  .wrap{max-width:1100px;margin:0 auto;padding:0 32px;}
+  .eyebrow{
+    font-family:'IBM Plex Mono',monospace;
+    font-size:12px;
+    letter-spacing:.18em;
+    text-transform:uppercase;
+    color:var(--amber);
+    display:flex;align-items:center;gap:10px;
+    margin-bottom:18px;
+  }
+  .eyebrow::before{content:"";width:22px;height:1px;background:var(--amber);}
+  h1,h2,h3{font-family:'Big Shoulders Display',sans-serif;font-weight:800;text-transform:uppercase;letter-spacing:.01em;}
+  :focus-visible{outline:2px solid var(--amber);outline-offset:3px;}
+  @media (prefers-reduced-motion: reduce){ *{animation-duration:.001ms !important; transition-duration:.001ms !important;} }
+
+  /* ---------- NAV ---------- */
+  nav{
+    position:fixed;top:0;left:0;right:0;z-index:50;
+    background:rgba(18,22,26,.85);backdrop-filter:blur(8px);
+    border-bottom:1px solid var(--line);
+  }
+  nav .wrap{display:flex;align-items:center;justify-content:space-between;height:64px;}
+  .brand{font-family:'IBM Plex Mono',monospace;font-size:14px;letter-spacing:.08em;font-weight:600;}
+  .brand span{color:var(--amber);}
+  .navlinks{display:flex;gap:28px;font-size:13px;font-family:'IBM Plex Mono',monospace;letter-spacing:.04em;}
+  .navlinks a{text-decoration:none;color:var(--text-dim);transition:color .2s;}
+  .navlinks a:hover{color:var(--paper);}
+  @media (max-width:700px){.navlinks{display:none;}}
+
+  /* ---------- HERO ---------- */
+  header.hero{
+    padding:150px 0 110px;
+    position:relative;
+    border-bottom:1px solid var(--line);
+  }
+  .hero-grid{display:grid;grid-template-columns:1.15fr .85fr;gap:64px;align-items:center;}
+  @media (max-width:880px){.hero-grid{grid-template-columns:1fr;}}
+  .hero h1{font-size:clamp(38px,5.2vw,64px);line-height:1;margin-bottom:22px;color:var(--paper);}
+  .hero h1 .hl{color:var(--amber);}
+  .hero p.lead{font-size:17px;color:var(--text-dim);max-width:46ch;margin-bottom:34px;}
+  .cta-row{display:flex;gap:14px;flex-wrap:wrap;}
+  .btn{
+    font-family:'IBM Plex Mono',monospace;font-size:13px;letter-spacing:.05em;
+    padding:14px 22px;border-radius:2px;text-decoration:none;
+    display:inline-flex;align-items:center;gap:8px;transition:transform .18s, background .18s;
+  }
+  .btn-primary{background:var(--amber);color:var(--ink);font-weight:600;}
+  .btn-primary:hover{transform:translateY(-2px);background:#f0ae4c;}
+  .btn-ghost{border:1px solid var(--line);color:var(--paper);}
+  .btn-ghost:hover{border-color:var(--amber);color:var(--amber);}
+
+  /* ---------- PRINTER / BADGE SIGNATURE ---------- */
+  .printer-stage{position:relative;height:420px;display:flex;align-items:flex-end;justify-content:center;}
+  .printer-body{
+    position:absolute;bottom:40px;width:280px;height:110px;
+    background:linear-gradient(180deg,#242A31,#1A1F24);
+    border-radius:8px;border:1px solid var(--line);
+    box-shadow:0 20px 50px rgba(0,0,0,.5);
+    z-index:2;
+  }
+  .printer-body::before{
+    content:"";position:absolute;top:-1px;left:20px;right:20px;height:14px;
+    background:var(--ink);border-radius:0 0 6px 6px;
+    border:1px solid var(--line);border-top:none;
+  }
+  .printer-slot{
+    position:absolute;top:-2px;left:34px;right:34px;height:6px;
+    background:#0B0D0F;border-radius:3px;
+  }
+  .led{position:absolute;bottom:14px;left:20px;width:8px;height:8px;border-radius:50%;background:var(--green);
+    box-shadow:0 0 8px var(--green);animation:blink 2.2s infinite;}
+  @keyframes blink{0%,100%{opacity:1;}50%{opacity:.35;}}
+  .printer-label{position:absolute;bottom:14px;right:20px;font-family:'IBM Plex Mono',monospace;font-size:9px;letter-spacing:.1em;color:var(--text-dim);}
+
+  .badge-card{
+    position:absolute;bottom:70px;width:220px;height:300px;
+    background:var(--paper);color:var(--text-dark);border-radius:6px;
+    box-shadow:0 30px 60px rgba(0,0,0,.45);
+    padding:20px;z-index:3;
+    animation:printOut 4.5s cubic-bezier(.2,.8,.2,1) infinite;
+    transform-origin:top center;
+  }
+  @keyframes printOut{
+    0%{transform:translateY(-4px) rotate(0deg);}
+    8%{transform:translateY(-4px) rotate(0deg);}
+    38%{transform:translateY(90px) rotate(-2deg);}
+    55%{transform:translateY(90px) rotate(-2deg);}
+    100%{transform:translateY(90px) rotate(-2deg);}
+  }
+  .badge-strip{height:8px;border-radius:2px;background:var(--green);margin-bottom:16px;width:60%;}
+  .badge-role{font-family:'IBM Plex Mono',monospace;font-size:10px;letter-spacing:.14em;color:var(--green);text-transform:uppercase;margin-bottom:8px;}
+  .badge-name{font-family:'Big Shoulders Display',sans-serif;font-weight:800;font-size:24px;line-height:1;color:var(--text-dark);margin-bottom:4px;}
+  .badge-org{font-size:12px;color:#555;margin-bottom:20px;}
+  .badge-qr{
+    width:64px;height:64px;margin:0 auto 10px;
+    background-image:
+      linear-gradient(90deg, #181B1E 25%, transparent 25%),
+      linear-gradient(90deg, transparent 75%, #181B1E 75%),
+      linear-gradient(0deg, #181B1E 25%, transparent 25%),
+      linear-gradient(0deg, transparent 75%, #181B1E 75%);
+    background-size:8px 8px;
+    border:6px solid var(--paper);
+    outline:1px solid #ddd7c4;
+  }
+  .badge-id{font-family:'IBM Plex Mono',monospace;font-size:10px;text-align:center;color:#777;letter-spacing:.06em;}
+
+  /* ---------- SECTION GENERIC ---------- */
+  section{padding:96px 0;border-bottom:1px solid var(--line);}
+  section:last-of-type{border-bottom:none;}
+  .section-head{max-width:640px;margin-bottom:56px;}
+  .section-head h2{font-size:clamp(28px,3.4vw,42px);color:var(--paper);}
+  .section-head p{color:var(--text-dim);margin-top:14px;font-size:15px;max-width:56ch;}
+
+  /* problem */
+  .problem-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:1px;background:var(--line);border:1px solid var(--line);}
+  .problem-card{background:var(--ink);padding:32px 26px;}
+  .problem-card .num{font-family:'IBM Plex Mono',monospace;color:var(--amber);font-size:12px;margin-bottom:14px;display:block;}
+  .problem-card h3{font-size:20px;color:var(--paper);margin-bottom:10px;text-transform:none;font-weight:700;}
+  .problem-card p{font-size:14px;color:var(--text-dim);}
+  @media (max-width:760px){.problem-grid{grid-template-columns:1fr;}}
+
+  /* solution flow */
+  .flow{display:flex;align-items:stretch;gap:0;flex-wrap:wrap;}
+  .flow-step{flex:1;min-width:150px;padding:24px 20px;border:1px solid var(--line);position:relative;background:var(--ink-soft);}
+  .flow-step + .flow-step{border-left:none;}
+  @media (max-width:760px){.flow-step{border-left:1px solid var(--line) !important;border-top:none;}}
+  .flow-step h4{font-family:'IBM Plex Mono',monospace;font-size:12px;letter-spacing:.06em;color:var(--green);margin-bottom:10px;text-transform:uppercase;}
+  .flow-step p{font-size:13.5px;color:var(--text-dim);}
+  .flow-arrow{display:flex;align-items:center;padding:0 6px;color:var(--text-dim);font-family:'IBM Plex Mono',monospace;}
+  @media (max-width:760px){.flow-arrow{display:none;}}
+
+  /* badge feature deep dive - light panel */
+  .feature-panel{background:var(--paper);color:var(--text-dark);border-radius:4px;padding:64px 0;}
+  .feature-panel .wrap{padding-left:32px;padding-right:32px;}
+  .feature-inner{display:grid;grid-template-columns:.9fr 1.1fr;gap:56px;align-items:start;}
+  @media (max-width:880px){.feature-inner{grid-template-columns:1fr;}}
+  .feature-panel .eyebrow{color:#B5762A;}
+  .feature-panel .eyebrow::before{background:#B5762A;}
+  .feature-panel h2{color:var(--text-dark);font-size:clamp(26px,3vw,38px);margin-bottom:16px;}
+  .feature-panel .lead{color:#4a4a4a;font-size:15px;margin-bottom:30px;max-width:52ch;}
+  .spec-list{list-style:none;}
+  .spec-list li{
+    display:flex;gap:14px;padding:16px 0;border-top:1px solid var(--line-light);
+    font-size:14px;color:#333;
+  }
+  .spec-list li:last-child{border-bottom:1px solid var(--line-light);}
+  .spec-list .tag{
+    font-family:'IBM Plex Mono',monospace;font-size:10px;letter-spacing:.08em;
+    background:var(--text-dark);color:var(--paper);padding:3px 8px;border-radius:2px;
+    height:fit-content;white-space:nowrap;text-transform:uppercase;
+  }
+
+  /* badge tiers showcase */
+  .tier-row{display:flex;gap:18px;flex-wrap:wrap;margin-top:8px;}
+  .mini-badge{
+    width:150px;background:#fff;border:1px solid var(--line-light);border-radius:5px;
+    padding:14px;box-shadow:0 10px 24px rgba(0,0,0,.08);
+  }
+  .mini-strip{height:6px;border-radius:2px;margin-bottom:10px;}
+  .mini-role{font-family:'IBM Plex Mono',monospace;font-size:8.5px;letter-spacing:.1em;text-transform:uppercase;margin-bottom:6px;}
+  .mini-name{font-family:'Big Shoulders Display',sans-serif;font-weight:800;font-size:16px;color:var(--text-dark);}
+  .mini-org{font-size:10px;color:#888;margin-bottom:10px;}
+  .mini-qr{width:36px;height:36px;margin:0 auto;
+    background-image:
+      linear-gradient(90deg, #181B1E 25%, transparent 25%),
+      linear-gradient(90deg, transparent 75%, #181B1E 75%),
+      linear-gradient(0deg, #181B1E 25%, transparent 25%),
+      linear-gradient(0deg, transparent 75%, #181B1E 75%);
+    background-size:6px 6px;border:4px solid #fff;outline:1px solid #eee;}
+  .attendee{background:#3FA772;}
+  .speaker{background:#E8A23D;}
+  .staff{background:#5B6B7A;}
+  .vip{background:#B5762A;}
+  .attendee-c{color:#2E8058;}
+  .speaker-c{color:#B5762A;}
+  .staff-c{color:#4B5A68;}
+  .vip-c{color:#8C5A1F;}
+
+  /* metrics */
+  .metrics{display:grid;grid-template-columns:repeat(4,1fr);gap:1px;background:var(--line);border:1px solid var(--line);}
+  .metric{background:var(--ink);padding:34px 24px;}
+  .metric .val{font-family:'Big Shoulders Display',sans-serif;font-weight:800;font-size:44px;color:var(--amber);line-height:1;}
+  .metric .lbl{font-family:'IBM Plex Mono',monospace;font-size:11px;color:var(--text-dim);letter-spacing:.05em;margin-top:10px;text-transform:uppercase;}
+  @media (max-width:760px){.metrics{grid-template-columns:1fr 1fr;}}
+
+  /* stack */
+  .stack-row{display:flex;flex-wrap:wrap;gap:10px;}
+  .pill{
+    font-family:'IBM Plex Mono',monospace;font-size:12.5px;padding:9px 16px;
+    border:1px solid var(--line);border-radius:2px;color:var(--paper);
+    background:var(--ink-soft);
+  }
+
+  /* other projects */
+  .proj-grid{display:grid;grid-template-columns:repeat(2,1fr);gap:1px;background:var(--line);border:1px solid var(--line);}
+  .proj-card{background:var(--ink);padding:30px;}
+  .proj-card h3{font-size:19px;color:var(--paper);font-weight:700;text-transform:none;margin-bottom:8px;}
+  .proj-card p{font-size:13.5px;color:var(--text-dim);}
+  @media (max-width:700px){.proj-grid{grid-template-columns:1fr;}}
+
+  /* footer */
+  footer{padding:70px 0 50px;}
+  .footer-inner{display:flex;justify-content:space-between;align-items:flex-end;flex-wrap:wrap;gap:24px;}
+  footer h2{font-size:clamp(30px,4vw,50px);color:var(--paper);margin-bottom:14px;}
+  .footer-links{display:flex;gap:22px;font-family:'IBM Plex Mono',monospace;font-size:13px;}
+  .footer-links a{text-decoration:none;color:var(--text-dim);border-bottom:1px solid transparent;transition:.2s;}
+  .footer-links a:hover{color:var(--amber);border-color:var(--amber);}
+  .fine{margin-top:50px;font-family:'IBM Plex Mono',monospace;font-size:11px;color:#555;}
+
+  .reveal{opacity:0;transform:translateY(18px);transition:opacity .6s ease, transform .6s ease;}
+  .reveal.in{opacity:1;transform:translateY(0);}
+</style>
+</head>
+<body>
+
+<nav>
+  <div class="wrap">
+    <div class="brand">ALEX CARTER <span>/ iOS · EVA CHECKIN</span></div>
+    <div class="navlinks">
+      <a href="#problem">Problem</a>
+      <a href="#badge">Badge Printing</a>
+      <a href="#stack">Stack</a>
+      <a href="#contact">Contact</a>
+    </div>
+  </div>
+</nav>
+
+<header class="hero">
+  <div class="wrap hero-grid">
+    <div>
+      <div class="eyebrow">Portfolio — iOS, Event Check-In</div>
+      <h1>I build iOS apps that print a badge <span class="hl">before the line notices it moved.</span></h1>
+      <p class="lead">iOS developer behind <strong>Eva Checkin</strong> — a mobile event check-in app with an in-app badge designer and Bluetooth badge printing — and <strong>Eva Lead Capture</strong>, its companion app for exhibitors scanning and qualifying leads on the show floor.</p>
+      <div class="cta-row">
+        <a href="#badge" class="btn btn-primary">See the badge printing system →</a>
+        <a href="#contact" class="btn btn-ghost">Get in touch</a>
+      </div>
+    </div>
+    <div class="printer-stage" aria-hidden="true">
+      <div class="badge-card">
+        <div class="badge-strip"></div>
+        <div class="badge-role">Speaker</div>
+        <div class="badge-name">J. Romero</div>
+        <div class="badge-org">Nimbus Cloud Summit</div>
+        <div class="badge-qr"></div>
+        <div class="badge-id">ID 0483 — GATE B</div>
+      </div>
+      <div class="printer-body">
+        <div class="printer-slot"></div>
+        <div class="led"></div>
+        <div class="printer-label">EVA CHECKIN — QUEUE: 1</div>
+      </div>
+    </div>
+  </div>
+</header>
+
+<section id="problem">
+  <div class="wrap">
+    <div class="section-head reveal">
+      <div class="eyebrow">The problem</div>
+      <h2>Event lines are where first impressions go to die</h2>
+      <p>Doors open, three hundred people arrive in twenty minutes, and every extra second at the check-in desk compounds into a queue out the door.</p>
+    </div>
+    <div class="problem-grid reveal">
+      <div class="problem-card">
+        <span class="num">01</span>
+        <h3>Slow lookup</h3>
+        <p>Staff scrolling spreadsheets or laggy search tools while a line backs up behind a single desk.</p>
+      </div>
+      <div class="problem-card">
+        <span class="num">02</span>
+        <h3>Printer failure mid-rush</h3>
+        <p>A jam or dropped connection at minute one of doors-open with no queue, retry, or fallback path.</p>
+      </div>
+      <div class="problem-card">
+        <span class="num">03</span>
+        <h3>Wrong badge, wrong door</h3>
+        <p>Manual role selection leads to misprints — a walk-in printed as VIP, a speaker printed as general admission.</p>
+      </div>
+    </div>
+  </div>
+</section>
+
+<section id="solution">
+  <div class="wrap">
+    <div class="section-head reveal">
+      <div class="eyebrow">The solution</div>
+      <h2>Check-in and printing, on a single iPhone or iPad</h2>
+      <p>Eva Checkin runs the whole flow natively on iOS — search to printed badge, no laptop or print server required.</p>
+    </div>
+    <div class="flow reveal">
+      <div class="flow-step"><h4>01 — Search</h4><p>Guest is found by name, email, or QR/ticket scan inside Eva Checkin, against a live-synced attendee list.</p></div>
+      <div class="flow-step"><h4>02 — Verify</h4><p>Ticket tier and role are confirmed automatically — attendee, speaker, staff, press, VIP.</p></div>
+      <div class="flow-step"><h4>03 — Print</h4><p>Badge is rendered from the in-app designer and sent over Bluetooth to a paired mobile thermal printer.</p></div>
+      <div class="flow-step"><h4>04 — Sync</h4><p>Check-in status pushes to the backend instantly, visible across every staff device at the event.</p></div>
+    </div>
+  </div>
+</section>
+
+<section id="badge" style="border-bottom:none;padding-bottom:0;">
+  <div class="wrap">
+    <div class="section-head reveal">
+      <div class="eyebrow">Flagship feature — Eva Checkin (iOS)</div>
+      <h2>Badge design and printing, built natively for iOS</h2>
+      <p>This is the piece I'm proudest of — a badge designer and Bluetooth printing pipeline built entirely in Swift, made to hold up through the worst ten minutes of any event, not just the demo-day best case.</p>
+    </div>
+  </div>
+
+  <div class="feature-panel reveal">
+    <div class="wrap">
+      <div class="feature-inner">
+        <div>
+          <div class="eyebrow">How it works</div>
+          <h2>From scan to printed badge in under 2 seconds</h2>
+          <p class="lead">Badges are laid out in an in-app design canvas, then rendered on-device and sent straight to a Bluetooth-paired mobile printer — so role, access level, and last-minute name changes are always accurate at the moment of print.</p>
+
+          <div class="tier-row">
+            <div class="mini-badge">
+              <div class="mini-strip attendee"></div>
+              <div class="mini-role attendee-c">Attendee</div>
+              <div class="mini-name">S. Patel</div>
+              <div class="mini-org">General Admission</div>
+              <div class="mini-qr"></div>
+            </div>
+            <div class="mini-badge">
+              <div class="mini-strip speaker"></div>
+              <div class="mini-role speaker-c">Speaker</div>
+              <div class="mini-name">J. Romero</div>
+              <div class="mini-org">All-Access</div>
+              <div class="mini-qr"></div>
+            </div>
+            <div class="mini-badge">
+              <div class="mini-strip staff"></div>
+              <div class="mini-role staff-c">Staff</div>
+              <div class="mini-name">D. Kim</div>
+              <div class="mini-org">Ops Team</div>
+              <div class="mini-qr"></div>
+            </div>
+            <div class="mini-badge">
+              <div class="mini-strip vip"></div>
+              <div class="mini-role vip-c">VIP</div>
+              <div class="mini-name">R. Novak</div>
+              <div class="mini-org">Backstage</div>
+              <div class="mini-qr"></div>
+            </div>
+          </div>
+        </div>
+
+        <ul class="spec-list">
+          <li><span class="tag">Design canvas</span><span>Built an in-app badge designer where organizers lay out logo, name, QR, and role fields per event — no external design tool needed.</span></li>
+          <li><span class="tag">Bluetooth print</span><span>Badges print directly from the iPhone/iPad over Core Bluetooth to a paired mobile thermal printer — no laptop or print server on site.</span></li>
+          <li><span class="tag">Templates</span><span>Role-based badge templates render dynamically — colour strip, access text, and QR payload are never hand-picked by staff.</span></li>
+          <li><span class="tag">Offline-first</span><span>Attendee data is cached on-device; if the venue Wi-Fi drops, check-ins and print jobs queue locally and sync once back online.</span></li>
+          <li><span class="tag">Reprints</span><span>One-tap reprint and void handling for smudged, jammed, or duplicate badges, with a full audit trail per attendee.</span></li>
+          <li><span class="tag">Performance</span><span>Sub-2-second render-to-print time, tested against Bluetooth thermal printers under expo-floor conditions.</span></li>
+        </ul>
+      </div>
+    </div>
+  </div>
+
+  <div class="wrap" style="padding-top:64px;">
+    <div class="metrics reveal">
+      <div class="metric"><div class="val">&lt;2s</div><div class="lbl">Scan to printed badge</div></div>
+      <div class="metric"><div class="val">[ ]</div><div class="lbl">Badges printed to date</div></div>
+      <div class="metric"><div class="val">[ ]%</div><div class="lbl">Reduction in check-in wait</div></div>
+      <div class="metric"><div class="val">[ ]%</div><div class="lbl">Uptime across live events</div></div>
+    </div>
+    <p style="font-family:'IBM Plex Mono',monospace;font-size:11px;color:#555;margin-top:14px;">
+      ↳ Metrics marked [ ] are placeholders — swap in your real numbers before sending this out.
+    </p>
+  </div>
+</section>
+
+<section id="stack">
+  <div class="wrap">
+    <div class="section-head reveal">
+      <div class="eyebrow">Under the hood</div>
+      <h2>Tech stack</h2>
+      <p>Native iOS, chosen for reliability on the show floor, not just on paper.</p>
+    </div>
+    <div class="stack-row reveal">
+      <span class="pill">Swift</span>
+      <span class="pill">UIKit / SwiftUI</span>
+      <span class="pill">Core Bluetooth</span>
+      <span class="pill">Core Graphics / PDFKit</span>
+      <span class="pill">CoreImage (QR/Barcode)</span>
+      <span class="pill">Mobile Thermal Print SDK</span>
+      <span class="pill">CoreData (offline cache)</span>
+      <span class="pill">REST / WebSocket Sync</span>
+    </div>
+  </div>
+</section>
+
+<section id="other">
+  <div class="wrap">
+    <div class="section-head reveal">
+      <div class="eyebrow">Also shipped</div>
+      <h2>Eva Lead Capture</h2>
+      <p>The companion iOS app to Eva Checkin — built for exhibitors, not organizers.</p>
+    </div>
+    <div class="proj-grid reveal">
+      <div class="proj-card">
+        <h3>Badge-to-lead scanning</h3>
+        <p>Exhibitors scan the same QR code Eva Checkin prints on each badge to instantly capture a visitor as a lead — no re-typing contact details on the show floor.</p>
+      </div>
+      <div class="proj-card">
+        <h3>On-the-spot notes &amp; qualifying</h3>
+        <p>[ Describe your qualifying-question / notes flow here — e.g. custom fields, hot/warm/cold tagging, follow-up flags. ]</p>
+      </div>
+      <div class="proj-card">
+        <h3>Export &amp; follow-up</h3>
+        <p>[ Describe export — CSV, CRM integration, email summary, etc. — so sales teams can follow up after the event. ]</p>
+      </div>
+      <div class="proj-card">
+        <h3>Shared foundation</h3>
+        <p>Built on the same iOS check-in/attendee infrastructure as Eva Checkin, so a badge printed at registration is scannable at any booth on the floor.</p>
+      </div>
+    </div>
+    <p style="font-family:'IBM Plex Mono',monospace;font-size:11px;color:#555;margin-top:20px;">
+      ↳ The two cards in brackets are placeholders — fill in the real qualifying and export flow for Eva Lead Capture.
+    </p>
+  </div>
+</section>
+
+<footer id="contact">
+  <div class="wrap">
+    <div class="footer-inner">
+      <div>
+        <h2>Let's talk check-in.</h2>
+        <div class="footer-links">
+          <a href="mailto:alex.carter@example.com">alex.carter@example.com</a>
+          <a href="#">LinkedIn</a>
+          <a href="#">GitHub</a>
+        </div>
+      </div>
+    </div>
+    <p class="fine">Replace the name, contact details, and metrics above with your own before sharing this page. Case study built around Eva Checkin's badge design &amp; printing feature and Eva Lead Capture.</p>
+  </div>
+</footer>
+
+<script>
+  const els = document.querySelectorAll('.reveal');
+  const io = new IntersectionObserver((entries)=>{
+    entries.forEach(e=>{ if(e.isIntersecting){ e.target.classList.add('in'); io.unobserve(e.target); } });
+  },{threshold:0.15});
+  els.forEach(el=>io.observe(el));
+</script>
+
+</body>
+</html>
